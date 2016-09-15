@@ -8,14 +8,13 @@ import (
 	"net"
 	"os"
 	"runtime"
-	"time"
 
 	"github.com/seckiss/ringbuf"
 )
 
 func main() {
 	r := bufio.NewReader(os.Stdin)
-	var ring = ringbuf.NewBuffer(5 * 1024 * 1024)
+	var ring = ringbuf.NewBuffer(30 * 1024 * 1024)
 	go ringWrite(ring, r)
 	l, err := net.Listen("tcp", ":2222")
 	if err != nil {
@@ -27,36 +26,18 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		conn.SetDeadline(time.Now().Add(30 * time.Second))
 		go func(c net.Conn) {
-			reader := ring.NewReader()
+			reader := ring.NewReader(1024 * 1024)
 			written, err := io.Copy(c, reader)
 			if err != nil {
 				fmt.Printf("io.Copy ended with error: %+v\n", err)
 			}
 			fmt.Printf("Written %d bytes\n", written)
-
-			/*			var b = make([]byte, 0, 4*1024)
-						for {
-							n, err := reader.Read(b[:cap(b)])
-							if err != nil {
-								break
-							}
-							if n == 0 {
-								continue
-							}
-							var b2 = make([]byte, 0, n)
-							conn.Write(b2)
-
-						}
-			*/
 			c.Close()
 
 		}(conn)
 
 	}
-
-	//time.Sleep(20 * time.Second)
 	//ioutil.WriteFile("out.rasp", ring.Bytes(), 0644)
 }
 
