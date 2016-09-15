@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net"
 	"os"
@@ -16,6 +17,11 @@ func main() {
 	r := bufio.NewReader(os.Stdin)
 	var ring = ringbuf.NewBuffer(30 * 1024 * 1024)
 	go ringWrite(ring, r)
+	go streamServer(ring)
+	go controlServer(ring)
+}
+
+func streamServer(ring *ringbuf.Buffer) {
 	l, err := net.Listen("tcp", ":2222")
 	if err != nil {
 		log.Fatal(err)
@@ -34,11 +40,38 @@ func main() {
 			}
 			fmt.Printf("Written %d bytes\n", written)
 			c.Close()
+		}(conn)
+	}
+}
+
+func controlServer(ring *ringbuf.Buffer) {
+	l, err := net.Listen("tcp", ":2223")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer l.Close()
+	for {
+		conn, err := l.Accept()
+		if err != nil {
+			log.Fatal(err)
+		}
+		go func(c net.Conn) {
+			reader := bufio.NewReader(c)
+			line, err := reader.ReadString('\n')
+			if err != nil {
+				fmt.Printf("ReadString ended with error: %+v\n", err)
+			}
+			if line == "dump" {
+				err = ioutil.WriteFile("dump.h264", ring.Bytes(), 0644)
+				if err != nil {
+					fmt.Printf("ioutil.WriteFile ended with error: %+v\n", err)
+				}
+
+			}
+			c.Close()
 
 		}(conn)
-
 	}
-	//ioutil.WriteFile("out.rasp", ring.Bytes(), 0644)
 }
 
 func ringWrite(ring *ringbuf.Buffer, r io.Reader) {
