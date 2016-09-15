@@ -14,7 +14,7 @@ import (
 
 func main() {
 	r := bufio.NewReader(os.Stdin)
-	var ring = ringbuf.NewBuffer(1024 * 1024)
+	var ring = ringbuf.NewBuffer(5 * 1024 * 1024)
 	go ringWrite(ring, r)
 	time.Sleep(20 * time.Second)
 	ioutil.WriteFile("out.rasp", ring.Bytes(), 0644)
