@@ -19,6 +19,7 @@ func main() {
 	go ringWrite(ring, r)
 	go streamServer(ring)
 	go controlServer(ring)
+	select {}
 }
 
 func streamServer(ring *ringbuf.Buffer) {
