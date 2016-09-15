@@ -27,7 +27,7 @@ func main() {
 			log.Fatal(err)
 		}
 		go func(c net.Conn) {
-			reader := ring.NewReader(1024 * 1024)
+			reader := ring.NewReaderOffset(1024 * 1024)
 			written, err := io.Copy(c, reader)
 			if err != nil {
 				fmt.Printf("io.Copy ended with error: %+v\n", err)
