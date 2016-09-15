@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/seckiss/ringbuf"
 )
@@ -62,6 +63,7 @@ func controlServer(ring *ringbuf.Buffer) {
 			if err != nil {
 				fmt.Printf("ReadString ended with error: %+v\n", err)
 			}
+			line = strings.TrimSpace(line)
 			if line == "dump" {
 				err = ioutil.WriteFile("dump.h264", ring.Bytes(), 0644)
 				if err != nil {
