@@ -10,13 +10,14 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/seckiss/ringbuf"
 )
 
 func main() {
 	r := bufio.NewReader(os.Stdin)
-	var ring = ringbuf.NewBuffer(30 * 1024 * 1024)
+	var ring = ringbuf.NewBuffer(100 * 1024 * 1024)
 	go ringWrite(ring, r)
 	go streamServer(ring)
 	go controlServer(ring)
@@ -65,11 +66,14 @@ func controlServer(ring *ringbuf.Buffer) {
 			}
 			line = strings.TrimSpace(line)
 			if line == "dump" {
-				err = ioutil.WriteFile("dump.h264", ring.Bytes(), 0644)
+				var dumpname = "raspispydump_" + time.Now().Format("060201_150405") + ".h264"
+				err = ioutil.WriteFile(dumpname, ring.Bytes(), 0644)
+				var response = "scp pi:/home/pi/seckiss/raspispy/" + dumpname + " . ; mpv " + dumpname + "\n"
 				if err != nil {
-					fmt.Printf("ioutil.WriteFile ended with error: %+v\n", err)
+					response = fmt.Sprintf("ioutil.WriteFile ended with error: %+v\n", err)
+					fmt.Println(response)
 				}
-
+				c.Write([]byte(response))
 			}
 			c.Close()
 
