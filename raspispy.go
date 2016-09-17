@@ -66,7 +66,7 @@ func controlServer(ring *ringbuf.Buffer) {
 			}
 			line = strings.TrimSpace(line)
 			if line == "dump" {
-				var dumpname = "raspispydump_" + time.Now().Format("060201_150405") + ".h264"
+				var dumpname = "raspispydump_" + time.Now().Format("060102_150405") + ".h264"
 				err = ioutil.WriteFile(dumpname, ring.Bytes(), 0644)
 				var response = "scp pi:/home/pi/seckiss/raspispy/" + dumpname + " . ; mpv " + dumpname + "\n"
 				if err != nil {
